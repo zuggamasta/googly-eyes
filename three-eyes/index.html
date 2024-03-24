@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>three.eyes</title>
+        <link rel="stylesheet" href="style.css" />
+
+  </head>
+  <body>
+
+    <div class="container" id="container"></div>
+    <div id="app"></div>
+    <form id="pseudoButton" class="center" action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="image" id="imageInput" accept="image/*" hidden>
+      <label for="imageInput"  class="button-30" >Select image from device</label>
+     </form>
+    <script type="module" src="src/main.ts"></script>
+  </body>
+</html>
