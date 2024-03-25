@@ -27,7 +27,7 @@ body {
   z-index: -999;
 }
 
-.center {
+.selectImage {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -35,7 +35,6 @@ body {
   transform: translateY(-100%);
 
 }
-
 
 .button-30 {
   align-items: center;

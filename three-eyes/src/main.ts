@@ -1,12 +1,19 @@
+// Import all three.js and all extras
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
-import { GUI } from "lil-gui";
-import { Vector3 } from "three";
 import { randFloat } from "three/src/math/MathUtils.js";
+
+// install lil-gui
+import { GUI } from "lil-gui";
+
+// install GSAP animation library
+import { gsap } from "gsap";
 
 let clock: THREE.Clock = new THREE.Clock();
 let app: HTMLElement;
+
+let maxSize: number = 10;
 
 // const container: HTMLElement = document.getElementById("container")!;
 // container.addEventListener("click", onMouseClick);
@@ -27,6 +34,7 @@ const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
+const pi = 3.14159265359;
 const raycaster = new THREE.Raycaster(); // create once
 const clickMouse = new THREE.Vector2(); // create once
 var draggable: THREE.Object3D;
@@ -163,8 +171,9 @@ function intersect(pos: THREE.Vector2) {
   return raycaster.intersectObjects(scene.children);
 }
 
+
 function initInstancing(){
-  window.addEventListener("click", (event) => {
+  window.addEventListener("mousedown", (event) => {
     console.log(scene);
     if (draggable != null) {
       console.log(`dropping draggable ${draggable.userData.name}`);
@@ -185,6 +194,21 @@ function initInstancing(){
         found[0].point.y,
         found[0].point.z
       );
+      copyObject.rotation.set(
+        0,
+        -pi/2+randFloat(-1,1),
+        0
+      );
+      let endScale = randFloat(3,8)
+      copyObject.scale.set(
+        endScale,
+        endScale,
+        endScale,
+      )
+      
+      let startrot = randFloat(-pi/2-pi,pi-pi/2);
+      gsap.from(copyObject.rotation, { duration: 1.33, y:startrot, ease: "elastic.out(1.66, 0.5)"});
+      gsap.from(copyObject.scale, { duration: .66, x:0.2, y:0, z:0.3, ease: "elastic.out(1, 0.3)" });
   
       scene.add(copyObject);
   
@@ -214,6 +238,21 @@ function initInstancing(){
         found[0].point.y,
         found[0].point.z
       );
+      copyObject.rotation.set(
+        0,
+        -pi/2+randFloat(-1,1),
+        0
+      );
+      let endScale = randFloat(5,16)
+      copyObject.scale.set(
+        endScale,
+        endScale,
+        endScale,
+      )
+      
+      let startrot = randFloat(-pi/2-pi,pi-pi/2);
+      gsap.from(copyObject.rotation, { duration: 1.33, y:startrot, ease: "elastic.out(1.66, 0.5)"});
+      gsap.from(copyObject.scale, { duration: .66, x:0.2, y:0, z:0.3, ease: "elastic.out(1, 0.3)" });
   
       scene.add(copyObject);
     };
@@ -224,12 +263,6 @@ function initInstancing(){
 function update() {
   requestAnimationFrame(update);
   delta = clock.getDelta();
-  eye.rotateOnAxis(new Vector3(0, 1, 0), delta * 3);
-  let uniform = randFloat(5, 15);
-  eye.scale.x = uniform;
-  eye.scale.y = uniform;
-  eye.scale.z = uniform;
-
   renderer.render(scene, camera);
 }
 
