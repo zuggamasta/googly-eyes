@@ -13,14 +13,6 @@ import { gsap } from "gsap";
 let clock: THREE.Clock = new THREE.Clock();
 let app: HTMLElement;
 
-let maxSize: number = 10;
-
-// const container: HTMLElement = document.getElementById("container")!;
-// container.addEventListener("click", onMouseClick);
-// function onMouseClick() {
-//   console.log("onMouseClick()")
-// }
-
 const container: HTMLElement = document.getElementById("container")!;
 
 let renderer: THREE.WebGLRenderer,
@@ -123,7 +115,6 @@ function init() {
   // Scene
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-  //camera.position.z = 10
   camera.position.set(0, 200, 0);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -223,7 +214,7 @@ function initInstancing(){
     }
   });
   
-  window.addEventListener("touch", (event) => {
+  window.addEventListener("touch", (event:TouchEvent) => {
     const touch: any = event.touches ? event.touches[0] : event;
   
     // Calculate the mouse position
@@ -263,6 +254,7 @@ function initInstancing(){
 function update() {
   requestAnimationFrame(update);
   delta = clock.getDelta();
+  delta *= 1;
   renderer.render(scene, camera);
 }
 
