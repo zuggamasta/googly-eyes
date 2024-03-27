@@ -4,11 +4,16 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { randFloat } from "three/src/math/MathUtils.js";
 
+
 // install lil-gui
 import { GUI } from "lil-gui";
 
 // install GSAP animation library
 import { gsap } from "gsap";
+
+// install html2canvas library
+// import html2canvas from "html2canvas";
+
 
 let clock: THREE.Clock = new THREE.Clock();
 let app: HTMLElement;
@@ -26,10 +31,10 @@ const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
 };
+
 const pi = 3.14159265359;
 const raycaster = new THREE.Raycaster(); // create once
 const clickMouse = new THREE.Vector2(); // create once
-var draggable: THREE.Object3D;
 
 function createFloor() {
   let pos = { x: 0, y: -1, z: 3 };
@@ -112,6 +117,15 @@ function init() {
   const gui = new GUI();
   gui.hide();
 
+  initScene();
+  loadHDR();
+  loadGLB();
+  createFloor();
+  initRender();
+  update();
+}
+
+function initScene() {
   // Scene
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
@@ -119,12 +133,6 @@ function init() {
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-
-  loadHDR();
-  loadGLB();
-  createFloor();
-  initRender();
-  update();
 }
 
 function initRender() {
@@ -141,115 +149,90 @@ function initRender() {
   renderer.domElement.id = "canvas";
   app = document.getElementById("app")!;
   app.appendChild(renderer.domElement);
+
+
+  window.addEventListener("resize", () => {
+    // Update sizes
+    sizes.width = window.innerWidth;
+    sizes.height = window.innerHeight;
+  
+    // Update camera
+    camera.aspect = sizes.width / sizes.height;
+    camera.updateProjectionMatrix();
+  
+    // Update renderer
+    renderer.setSize(sizes.width, sizes.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  });
+  
 }
 
-window.addEventListener("resize", () => {
-  // Update sizes
-  sizes.width = window.innerWidth;
-  sizes.height = window.innerHeight;
 
-  // Update camera
-  camera.aspect = sizes.width / sizes.height;
-  camera.updateProjectionMatrix();
+function instanceObject(inputEvent) {
+  inputEvent.stopPropagation();
+  inputEvent.preventDefault();
 
-  // Update renderer
-  renderer.setSize(sizes.width, sizes.height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-});
+  // THREE RAYCASTER
+  clickMouse.x = (inputEvent.clientX / window.innerWidth) * 2 - 1;
+  clickMouse.y = -(inputEvent.clientY / window.innerHeight) * 2 + 1;
+  const found = intersect(clickMouse);
 
-function intersect(pos: THREE.Vector2) {
-  raycaster.setFromCamera(pos, camera);
-  return raycaster.intersectObjects(scene.children);
+  if (found.length > 0) {
+
+    cloneObject(eye,found);
+  }
+}
+
+function cloneObject (threeObject,found){
+  let copyObject = threeObject.clone();
+    copyObject.position.set(
+      found[0].point.x,
+      found[0].point.y,
+      found[0].point.z
+    );
+    copyObject.rotation.set(
+      0,
+      -pi/2+randFloat(-1,1),
+      0
+    );
+    let endScale = randFloat(3,8)
+    copyObject.scale.set(
+      endScale,
+      endScale,
+      endScale,
+    )
+    
+    let startrot = randFloat(-pi/2-pi,pi-pi/2);
+    gsap.from(copyObject.rotation, { duration: 1.33, y:startrot, ease: "elastic.out(1.66, 0.5)"});
+    gsap.from(copyObject.scale, { duration: .66, x:0.2, y:0, z:0.3, ease: "elastic.out(1, 0.3)" });
+
+    scene.add(copyObject);
 }
 
 
 function initInstancing(){
-  window.addEventListener("mousedown", (event) => {
-    console.log(scene);
-    if (draggable != null) {
-      console.log(`dropping draggable ${draggable.userData.name}`);
-      draggable.rotateY(randFloat(-180, 180));
-      draggable = null as any;
-      return;
-    }
-  
-    // THREE RAYCASTER
-    clickMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    clickMouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  
-    const found = intersect(clickMouse);
-    if (found.length > 0) {
-      let copyObject = eye.clone();
-      copyObject.position.set(
-        found[0].point.x,
-        found[0].point.y,
-        found[0].point.z
-      );
-      copyObject.rotation.set(
-        0,
-        -pi/2+randFloat(-1,1),
-        0
-      );
-      let endScale = randFloat(3,8)
-      copyObject.scale.set(
-        endScale,
-        endScale,
-        endScale,
-      )
-      
-      let startrot = randFloat(-pi/2-pi,pi-pi/2);
-      gsap.from(copyObject.rotation, { duration: 1.33, y:startrot, ease: "elastic.out(1.66, 0.5)"});
-      gsap.from(copyObject.scale, { duration: .66, x:0.2, y:0, z:0.3, ease: "elastic.out(1, 0.3)" });
-  
-      scene.add(copyObject);
-  
-      console.log();
-      if (found[0].object.userData.draggable) {
-        draggable = found[0].object;
-        console.log(`found draggable ${draggable.userData.name}`);
-      } else if (found[0].object.parent.userData.draggable) {
-        draggable = found[0].object.parent;
-        console.log(`found draggable ${draggable.userData.name}`);
-      }
-    }
-  });
-  
-  window.addEventListener("touch", (event:TouchEvent) => {
-    const touch: any = event.touches ? event.touches[0] : event;
-  
-    // Calculate the mouse position
-    clickMouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
-    clickMouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
-  
-    const found = intersect(clickMouse);
-    if (found.length > 0) {
-      let copyObject = eye.clone();
-      copyObject.position.set(
-        found[0].point.x,
-        found[0].point.y,
-        found[0].point.z
-      );
-      copyObject.rotation.set(
-        0,
-        -pi/2+randFloat(-1,1),
-        0
-      );
-      let endScale = randFloat(5,16)
-      copyObject.scale.set(
-        endScale,
-        endScale,
-        endScale,
-      )
-      
-      let startrot = randFloat(-pi/2-pi,pi-pi/2);
-      gsap.from(copyObject.rotation, { duration: 1.33, y:startrot, ease: "elastic.out(1.66, 0.5)"});
-      gsap.from(copyObject.scale, { duration: .66, x:0.2, y:0, z:0.3, ease: "elastic.out(1, 0.3)" });
-  
-      scene.add(copyObject);
-    };
-  });
-  
+  window.addEventListener('touchstart', instanceObject)
+  window.addEventListener('click', instanceObject)
 }
+
+// function saveScreenshot(){
+//   html2canvas(app).then(function(canvas) {
+//     // Convert the canvas to a data URL
+//     var imgData = canvas.toDataURL("image/jpeg");
+//     // Trigger the download
+//     downloadImage(imgData, "website_screenshot.jpg");
+//   });
+// }
+
+
+// function downloadImage(dataUrl, filename) {
+//   var link = document.createElement('a');
+//   link.href = dataUrl;
+//   link.download = filename;
+//   document.body.appendChild(link);
+//   link.click();
+//   document.body.removeChild(link);
+// }
 
 function update() {
   requestAnimationFrame(update);
@@ -257,5 +240,12 @@ function update() {
   delta *= 1;
   renderer.render(scene, camera);
 }
+
+
+function intersect(pos: THREE.Vector2) {
+  raycaster.setFromCamera(pos, camera);
+  return raycaster.intersectObjects(scene.children);
+}
+
 
 init();
