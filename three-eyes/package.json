@@ -14,8 +14,10 @@
     "vite": "^5.2.0"
   },
   "dependencies": {
+    "@rive-app/canvas": "^2.11.1",
     "@types/three": "^0.162.0",
     "gsap": "^3.12.5",
+    "html2canvas": "^1.4.1",
     "three": "^0.162.0"
   }
 }

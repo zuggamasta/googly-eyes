@@ -14,6 +14,9 @@ import { gsap } from "gsap";
 // install html2canvas library
 // import html2canvas from "html2canvas";
 
+// install Rive
+import * as rive from "@rive-app/canvas";
+
 
 let clock: THREE.Clock = new THREE.Clock();
 let app: HTMLElement;
@@ -110,6 +113,9 @@ function displayImage(base64String) {
   imgElement.src = base64String;
   container.appendChild(imgElement);
   document.getElementById("pseudoButton").setAttribute("style", "display:none");
+  document.getElementById("rive").setAttribute("style", "display:none");
+  r.cleanup();
+
   initInstancing()
 }
 
@@ -247,5 +253,16 @@ function intersect(pos: THREE.Vector2) {
   return raycaster.intersectObjects(scene.children);
 }
 
+
+const r = new rive.Rive({
+  src: "rive/intro.riv",
+  canvas: document.getElementById("rive") as HTMLCanvasElement,  
+  autoplay: true,
+  stateMachines: "Intro",
+
+  onLoad: () => {
+    r.resizeDrawingSurfaceToCanvas();
+  },
+});
 
 init();
